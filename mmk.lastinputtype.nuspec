@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+	<metadata>
+		<id>mmk.lastinputtype</id>
+		<version>0.0.0</version>
+		<authors>MaulingMonkey</authors>
+		<owners>MaulingMonkey</owners>
+		<description>MaulingMonKey's basic API for tracking the type of input device last used</description>
+		<copyright>Copyright © MaulingMonkey 2017</copyright>
+		<tags>typescript ui input</tags>
+	</metadata>
+	<files>
+		<file src="mmk.lastinputtype\src\**\*.ts"                        target="Content\Scripts\mmk.lastinputtype"/>
+		<file src="mmk.lastinputtype\Scripts\mmk.lastinputtype\**\*.js"     target="Content\Scripts\mmk.lastinputtype"/>
+		<file src="mmk.lastinputtype\Scripts\mmk.lastinputtype\**\*.js.map" target="Content\Scripts\mmk.lastinputtype"/>
+	</files>
+</package>

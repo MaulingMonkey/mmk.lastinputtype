@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mmk.lastinputtype", "mmk.lastinputtype\mmk.lastinputtype.csproj", "{B7E1391D-5D0F-4CC9-8ADB-1AC6DBDC0BF3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{C5C19BE7-7162-4FEE-BCCC-27C821A7F713}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		mmk.lastinputtype.nuspec = mmk.lastinputtype.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{A4DD60E0-A658-42A8-A871-CA4809558831}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
+		Readme.md = Readme.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7E1391D-5D0F-4CC9-8ADB-1AC6DBDC0BF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7E1391D-5D0F-4CC9-8ADB-1AC6DBDC0BF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7E1391D-5D0F-4CC9-8ADB-1AC6DBDC0BF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7E1391D-5D0F-4CC9-8ADB-1AC6DBDC0BF3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

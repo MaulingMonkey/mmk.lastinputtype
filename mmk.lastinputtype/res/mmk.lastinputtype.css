@@ -1,0 +1,22 @@
+﻿table {
+	font:            16pt Consolas;
+	border-collapse: collapse;
+}
+
+th {
+	padding-bottom:  8pt;
+}
+
+th,td {
+	padding-left:    0.5em;
+	padding-right:   0.5em;
+}
+
+.mmk-lastinputtype-keyboard          .highlight-keyboard         { color: #FFF; background: #48F; }
+.mmk-lastinputtype-mouse             .highlight-mouse            { color: #FFF; background: #48F; }
+.mmk-lastinputtype-stylus            .highlight-stylus           { color: #FFF; background: #48F; }
+.mmk-lastinputtype-touch             .highlight-touch            { color: #FFF; background: #48F; }
+.mmk-lastinputtype-gamepad-xbox      .highlight-gamepad-xbox     { color: #FFF; background: #48F; }
+.mmk-lastinputtype-gamepad-sony      .highlight-gamepad-sony     { color: #FFF; background: #48F; }
+.mmk-lastinputtype-gamepad-standard  .highlight-gamepad-standard { color: #FFF; background: #48F; }
+.mmk-lastinputtype-controller        .highlight-controller       { color: #FFF; background: #48F; }
