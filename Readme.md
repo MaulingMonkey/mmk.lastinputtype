@@ -10,7 +10,7 @@ License: [Apache 2.0](LICENSE.txt)
 
 
 
-# Example
+# [Example](http://maulingmonkey.com/mmk.lastinputtype/mmk.lastinputtype/)
 
 [mmk.lastinputtype.css](mmk.lastinputtype/res/mmk.lastinputtype.css)
 ```css
@@ -41,6 +41,10 @@ License: [Apache 2.0](LICENSE.txt)
 </table>
 <!-- ... -->
 ```
+
+Live demo: [Example](http://maulingmonkey.com/mmk.lastinputtype/mmk.lastinputtype/)
+
+See also: [HTML5 Gamepad Tester](http://html5gamepad.com/)
 
 
 
