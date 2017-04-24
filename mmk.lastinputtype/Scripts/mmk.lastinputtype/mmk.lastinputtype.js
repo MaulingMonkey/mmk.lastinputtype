@@ -22,7 +22,7 @@ var mmk;
             if (config.trackGamepadStandard === undefined)
                 config.trackGamepadStandard = true;
             if (config.axisDeadzone === undefined)
-                config.axisDeadzone = 0.1;
+                config.axisDeadzone = 0.2;
         })(config = lastinputtype.config || (lastinputtype.config = {}));
         lastinputtype.id = undefined;
         var liClassList = [];
@@ -50,10 +50,11 @@ var mmk;
         }
         function isActiveSonyDS4Wireless(gamepad) {
             for (var i = 0; i < gamepad.buttons.length; ++i)
-                if (gamepad.buttons[i].pressed) {
-                    log(gamepad.id, "pressed button", i);
-                    return true;
-                }
+                if (i !== 12)
+                    if (gamepad.buttons[i].pressed) {
+                        log(gamepad.id, "pressed button", i);
+                        return true;
+                    }
             for (var i = 0; i < gamepad.axes.length; ++i) {
                 switch (i) {
                     case 3:

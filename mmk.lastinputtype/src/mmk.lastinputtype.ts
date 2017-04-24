@@ -28,7 +28,7 @@ namespace mmk.lastinputtype {
 		export var trackGamepadSony     : boolean; if (trackGamepadSony     === undefined) trackGamepadSony     = true;
 		export var trackGamepadStandard : boolean; if (trackGamepadStandard === undefined) trackGamepadStandard = true;
 
-		export var axisDeadzone         : number ; if (axisDeadzone         === undefined) axisDeadzone         = 0.1;
+		export var axisDeadzone         : number ; if (axisDeadzone         === undefined) axisDeadzone         = 0.2;
 	}
 
 	export var id = undefined;
@@ -51,7 +51,7 @@ namespace mmk.lastinputtype {
 	}
 
 	function isActiveSonyDS4Wireless(gamepad: Gamepad): boolean {
-		for (let i=0; i<gamepad.buttons.length; ++i) if (gamepad.buttons[i].pressed) { log(gamepad.id, "pressed button", i); return true; }
+		for (let i=0; i<gamepad.buttons.length; ++i) if (i !== 12) if (gamepad.buttons[i].pressed) { log(gamepad.id, "pressed button", i); return true; }
 		for (let i=0; i<gamepad.axes.length;    ++i) {
 			switch (i) {
 				// Triggers are -1..+1, renormalize them to 0..+1 for deadzone calcs
