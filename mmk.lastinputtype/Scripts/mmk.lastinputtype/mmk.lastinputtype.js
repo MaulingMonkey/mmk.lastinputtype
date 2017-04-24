@@ -2,6 +2,7 @@ var mmk;
 (function (mmk) {
     var lastinputtype;
     (function (lastinputtype) {
+        var log = console.log;
         var config;
         (function (config) {
             if (config.trackKeyboard === undefined)
@@ -20,6 +21,8 @@ var mmk;
                 config.trackGamepadSony = true;
             if (config.trackGamepadStandard === undefined)
                 config.trackGamepadStandard = true;
+            if (config.axisDeadzone === undefined)
+                config.axisDeadzone = 0.1;
         })(config = lastinputtype.config || (lastinputtype.config = {}));
         lastinputtype.id = undefined;
         var liClassList = [];
@@ -32,12 +35,74 @@ var mmk;
         lastinputtype.GamepadSony = addCls("mmk-lastinputtype-gamepad-sony");
         lastinputtype.GamepadStandard = addCls("mmk-lastinputtype-gamepad-standard");
         lastinputtype.Controller = addCls("mmk-lastinputtype-controller");
-        var gamepadIdsToCls = {
-            "Xbox 360 Controller (XInput STANDARD GAMEPAD)": { cls: lastinputtype.GamepadXbox, enabled: function () { return config.trackGamepadXbox; } }
-        };
-        var gamepadMappingsToCls = {
-            "standard": { cls: lastinputtype.GamepadStandard, enabled: function () { return config.trackGamepadStandard; } }
-        };
+        function isActiveDefault(gamepad) {
+            for (var i = 0; i < gamepad.buttons.length; ++i)
+                if (gamepad.buttons[i].pressed) {
+                    log(gamepad.id, "pressed button", i);
+                    return true;
+                }
+            for (var i = 0; i < gamepad.axes.length; ++i)
+                if (Math.abs(gamepad.axes[i]) > config.axisDeadzone) {
+                    log(gamepad.id, "active axis", i);
+                    return true;
+                }
+            return false;
+        }
+        function isActiveSonyDS4Wireless(gamepad) {
+            for (var i = 0; i < gamepad.buttons.length; ++i)
+                if (gamepad.buttons[i].pressed) {
+                    log(gamepad.id, "pressed button", i);
+                    return true;
+                }
+            for (var i = 0; i < gamepad.axes.length; ++i) {
+                switch (i) {
+                    case 3:
+                        if (Math.abs((gamepad.axes[i] + 1) / 2) > config.axisDeadzone) {
+                            log(gamepad.id, "active axis", i);
+                            return true;
+                        }
+                        break;
+                    case 4:
+                        if (Math.abs((gamepad.axes[i] + 1) / 2) > config.axisDeadzone) {
+                            log(gamepad.id, "active axis", i);
+                            return true;
+                        }
+                        break;
+                    case 9:
+                        var dpadStateIndex = Math.round((gamepad.axes[i] + 1) * 7 / 2);
+                        if (dpadStateIndex !== 8) {
+                            log(gamepad.id, "active dpad", dpadStateIndex);
+                            return true;
+                        }
+                        break;
+                    default:
+                        if (Math.abs(gamepad.axes[i]) > config.axisDeadzone) {
+                            log(gamepad.id, "active axis", i);
+                            return true;
+                        }
+                        break;
+                }
+            }
+            return false;
+        }
+        var browserGamepadId_to_ControllerEntry = {};
+        var vendorProductId_to_ControllerEntry = {};
+        var browserMapping_to_ControllerEntry = {};
+        var controllerEntries = [
+            { chromeId: "Xbox 360 Controller (XInput STANDARD GAMEPAD)", cls: lastinputtype.GamepadXbox, clsEnabled: function () { return config.trackGamepadXbox; }, active: isActiveDefault },
+            { chromeId: "DUALSHOCK®4 USB Wireless Adaptor (Vendor: 054c Product: 0ba0)", vendorProductId: "054c 0ba0", cls: lastinputtype.GamepadSony, clsEnabled: function () { return config.trackGamepadSony; }, active: isActiveSonyDS4Wireless },
+            { chromeId: "Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 09cc)", vendorProductId: "054c 09cc", cls: lastinputtype.GamepadSony, clsEnabled: function () { return config.trackGamepadSony; }, active: isActiveDefault },
+            { chromeId: "PLAYSTATION(R)3 Controller (Vendor: 054c Product: 0268)", vendorProductId: "054c 0268", cls: lastinputtype.GamepadSony, clsEnabled: function () { return config.trackGamepadSony; }, active: isActiveDefault },
+            { mappingId: "standard", cls: lastinputtype.GamepadStandard, clsEnabled: function () { return config.trackGamepadStandard; }, active: isActiveDefault }
+        ];
+        controllerEntries.forEach(function (gamepad) {
+            if (gamepad.chromeId !== undefined)
+                browserGamepadId_to_ControllerEntry[gamepad.chromeId] = gamepad;
+            if (gamepad.vendorProductId !== undefined)
+                vendorProductId_to_ControllerEntry[gamepad.vendorProductId] = gamepad;
+            if (gamepad.mappingId !== undefined)
+                browserMapping_to_ControllerEntry[gamepad.mappingId] = gamepad;
+        });
         var deferredBodyClass = undefined;
         function setBodyClass(idAndClass) {
             lastinputtype.id = idAndClass;
@@ -113,7 +178,6 @@ var mmk;
                 wrapper();
             }
         }
-        var lastGamepadUpdate = undefined;
         function updateGamepads() {
             if (!config.trackGamepad)
                 return;
@@ -122,21 +186,39 @@ var mmk;
                 var gamepad = gamepads[i];
                 if (!gamepad)
                     continue;
-                var timestamp = gamepad.timestamp;
-                if (lastGamepadUpdate === undefined || lastGamepadUpdate < timestamp) {
-                    lastGamepadUpdate = timestamp;
-                    var e = gamepadIdsToCls[gamepad.id];
-                    if (e && e.enabled()) {
+                var e = browserGamepadId_to_ControllerEntry[gamepad.id];
+                if (e)
+                    if (!e.active(gamepad))
+                        continue;
+                    else if (e.clsEnabled()) {
                         setBodyClass(e.cls);
                         return;
                     }
-                    e = gamepadMappingsToCls[gamepad.mapping];
-                    if (e && e.enabled()) {
-                        setBodyClass(e.cls);
-                        return;
-                    }
-                    setBodyClass(lastinputtype.Controller);
+                if (gamepad.mapping) {
+                    e = browserMapping_to_ControllerEntry[gamepad.mapping];
+                    if (e)
+                        if (!e.active(gamepad))
+                            continue;
+                        else if (e.clsEnabled()) {
+                            setBodyClass(e.cls);
+                            return;
+                        }
                 }
+                var mVendProd = /[ (]Vendor: ([0-9a-f]+) Product: ([0-9a-f]+)\)$/gi.exec(gamepad.id);
+                if (mVendProd) {
+                    e = vendorProductId_to_ControllerEntry[mVendProd[1] + " " + mVendProd[2]];
+                    if (e)
+                        if (!e.active(gamepad))
+                            continue;
+                        else if (e.clsEnabled()) {
+                            setBodyClass(e.cls);
+                            return;
+                        }
+                }
+                if (!isActiveDefault(gamepad))
+                    continue;
+                setBodyClass(lastinputtype.Controller);
+                return;
             }
         }
         if (!('getGamepads' in navigator)) {

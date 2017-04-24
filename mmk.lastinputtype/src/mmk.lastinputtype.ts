@@ -14,18 +14,21 @@
 */
 
 namespace mmk.lastinputtype {
+	const log = console.log;
+	//const log = (message : string, ...optional) => {};
+
 	export namespace config {
-		export var trackKeyboard        ; if (trackKeyboard        === undefined) trackKeyboard        = true;
-		export var trackMouse           ; if (trackMouse           === undefined) trackMouse           = true;
-		export var trackStylus          ; if (trackStylus          === undefined) trackStylus          = true;
-		export var trackTouch           ; if (trackTouch           === undefined) trackTouch           = true;
-		export var trackGamepad         ; if (trackGamepad         === undefined) trackGamepad         = true;
+		export var trackKeyboard        : boolean; if (trackKeyboard        === undefined) trackKeyboard        = true;
+		export var trackMouse           : boolean; if (trackMouse           === undefined) trackMouse           = true;
+		export var trackStylus          : boolean; if (trackStylus          === undefined) trackStylus          = true;
+		export var trackTouch           : boolean; if (trackTouch           === undefined) trackTouch           = true;
+		export var trackGamepad         : boolean; if (trackGamepad         === undefined) trackGamepad         = true;
 
-		export var trackGamepadXbox     ; if (trackGamepadXbox     === undefined) trackGamepadXbox     = true;
-		export var trackGamepadSony     ; if (trackGamepadSony     === undefined) trackGamepadSony     = true;
-		export var trackGamepadStandard ; if (trackGamepadStandard === undefined) trackGamepadStandard = true;
+		export var trackGamepadXbox     : boolean; if (trackGamepadXbox     === undefined) trackGamepadXbox     = true;
+		export var trackGamepadSony     : boolean; if (trackGamepadSony     === undefined) trackGamepadSony     = true;
+		export var trackGamepadStandard : boolean; if (trackGamepadStandard === undefined) trackGamepadStandard = true;
 
-		// ...
+		export var axisDeadzone         : number ; if (axisDeadzone         === undefined) axisDeadzone         = 0.1;
 	}
 
 	export var id = undefined;
@@ -41,20 +44,70 @@ namespace mmk.lastinputtype {
 	export const GamepadStandard  = addCls("mmk-lastinputtype-gamepad-standard" );
 	export const Controller       = addCls("mmk-lastinputtype-controller"       );
 
+	function isActiveDefault(gamepad: Gamepad): boolean {
+		for (let i=0; i<gamepad.buttons.length; ++i) if (gamepad.buttons[i].pressed) { log(gamepad.id, "pressed button", i); return true; }
+		for (let i=0; i<gamepad.axes.length;    ++i) if (Math.abs(gamepad.axes[i]) > config.axisDeadzone) { log(gamepad.id, "active axis", i); return true; }
+		return false;
+	}
+
+	function isActiveSonyDS4Wireless(gamepad: Gamepad): boolean {
+		for (let i=0; i<gamepad.buttons.length; ++i) if (gamepad.buttons[i].pressed) { log(gamepad.id, "pressed button", i); return true; }
+		for (let i=0; i<gamepad.axes.length;    ++i) {
+			switch (i) {
+				// Triggers are -1..+1, renormalize them to 0..+1 for deadzone calcs
+				case 3:  if (Math.abs((gamepad.axes[i]+1)/2) > config.axisDeadzone) { log(gamepad.id, "active axis", i); return true; } break;
+				case 4:  if (Math.abs((gamepad.axes[i]+1)/2) > config.axisDeadzone) { log(gamepad.id, "active axis", i); return true; } break;
+
+				// 0,1: left stick - sane values
+				// 2,5: right stick - sane values
+				// 6,7,8: zero values - unused?
+
+				// Dpad is for some reason encoded as an axis.
+				case 9:
+					let dpadStateIndex = Math.round( (gamepad.axes[i]+1)*7/2 ); // -1.00 == up, rotating around right until +1.00 = up-left, and +1.285714 = resting.
+					// console.log("Sony wireless dpad state:", "up up-right right down-right down down-left left up-left center".split(' ')[Math.round( (gamepad.axes[9]+1)*7/2 )]);
+					if (dpadStateIndex !== 8) { log(gamepad.id, "active dpad", dpadStateIndex); return true; }
+					break;
+
+				default: if (Math.abs(gamepad.axes[i]) > config.axisDeadzone) { log(gamepad.id, "active axis", i); return true; } break;
+			}
+		}
+		return false;
+	}
+
 	interface ControllerEntry {
-		cls:     string;
-		enabled: ()=>boolean;
+		chromeId?:         string;
+		vendorProductId?:  string;
+		mappingId?:        string;
+		cls:               string;
+		clsEnabled:        ()=>boolean;
+		active:            (gamepad: Gamepad)=>boolean;
 	}
 	type ControllerEntryMap = {[id: string]: ControllerEntry};
 
-	const gamepadIdsToCls : ControllerEntryMap = {
-		"Xbox 360 Controller (XInput STANDARD GAMEPAD)": { cls: GamepadXbox, enabled: ()=>config.trackGamepadXbox }
-		// TODO: A lot more controller IDs (sony? hotas? pedals?)
-	};
+	const browserGamepadId_to_ControllerEntry : ControllerEntryMap = {};
+	const vendorProductId_to_ControllerEntry  : ControllerEntryMap = {};
+	const browserMapping_to_ControllerEntry   : ControllerEntryMap = {};
 
-	const gamepadMappingsToCls : ControllerEntryMap = {
-		"standard": { cls: GamepadStandard, enabled: ()=>config.trackGamepadStandard }
-	};
+	const controllerEntries : ControllerEntry[] = [
+		{ chromeId: "Xbox 360 Controller (XInput STANDARD GAMEPAD)",                                                   cls: GamepadXbox,     clsEnabled: ()=>config.trackGamepadXbox    , active: isActiveDefault         },
+		// NOTE: Xbox One Wireless controllers connected via Microsoft's official wireless dongle will also report as a 360 controller
+
+		{ chromeId: "DUALSHOCK®4 USB Wireless Adaptor (Vendor: 054c Product: 0ba0)",     vendorProductId: "054c 0ba0", cls: GamepadSony,     clsEnabled: ()=>config.trackGamepadSony    , active: isActiveSonyDS4Wireless }, // DualShock 4 connected via Official Wireless Dongle (NOTE: nonstandard mapping, with single FUBAR axis for dpad!)
+		{ chromeId: "Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 09cc)", vendorProductId: "054c 09cc", cls: GamepadSony,     clsEnabled: ()=>config.trackGamepadSony    , active: isActiveDefault         }, // DualShock 4 connected via Micro-usb (NOTE: Xinput style mapping, with two extra buttons: B16 (PS button), B17 (Touchpad Click)
+		{ chromeId: "PLAYSTATION(R)3 Controller (Vendor: 054c Product: 0268)",           vendorProductId: "054c 0268", cls: GamepadSony,     clsEnabled: ()=>config.trackGamepadSony    , active: isActiveDefault         }, // DualShock 3 connected via Mini-usb  (NOTE: input is dead, nonstandard mapping!)
+
+		// TODO: A lot more controller IDs (sony? hotas? pedals?)
+
+		// Fallback
+		{ mappingId: "standard",                                                                                       cls: GamepadStandard, clsEnabled: ()=>config.trackGamepadStandard, active: isActiveDefault         }
+	];
+	controllerEntries.forEach(gamepad => {
+		if (gamepad.chromeId        !== undefined) browserGamepadId_to_ControllerEntry[gamepad.chromeId       ] = gamepad;
+		if (gamepad.vendorProductId !== undefined) vendorProductId_to_ControllerEntry [gamepad.vendorProductId] = gamepad;
+		if (gamepad.mappingId       !== undefined) browserMapping_to_ControllerEntry  [gamepad.mappingId      ] = gamepad;
+	});
+
 
 	var deferredBodyClass : string = undefined;
 	function setBodyClass(idAndClass: string) {
@@ -128,25 +181,30 @@ namespace mmk.lastinputtype {
 		}
 	}
 
-	let lastGamepadUpdate : number = undefined;
 	function updateGamepads() {
 		if (!config.trackGamepad) return;
 		let gamepads = navigator.getGamepads();
 		for (let i=0; i<gamepads.length; ++i) {
 			let gamepad = gamepads[i];
 			if (!gamepad) continue;
-			let timestamp = gamepad.timestamp;
-			if (lastGamepadUpdate === undefined || lastGamepadUpdate < timestamp) {
-				lastGamepadUpdate = timestamp;
 
-				let e = gamepadIdsToCls[gamepad.id]
-				if (e && e.enabled()) { setBodyClass(e.cls); return; }
+			let e = browserGamepadId_to_ControllerEntry[gamepad.id]
+			if (e) if (!e.active(gamepad)) continue; else if (e.clsEnabled()) { setBodyClass(e.cls); return; }
 
-				e = gamepadMappingsToCls[gamepad.mapping];
-				if (e && e.enabled()) { setBodyClass(e.cls); return; }
-
-				setBodyClass(Controller);
+			if (gamepad.mapping) {
+				e = browserMapping_to_ControllerEntry[gamepad.mapping];
+				if (e) if (!e.active(gamepad)) continue; else if (e.clsEnabled()) { setBodyClass(e.cls); return; }
 			}
+
+			let mVendProd = /[ (]Vendor: ([0-9a-f]+) Product: ([0-9a-f]+)\)$/gi.exec(gamepad.id);
+			if (mVendProd) {
+				e = vendorProductId_to_ControllerEntry[mVendProd[1]+" "+mVendProd[2]];
+				if (e) if (!e.active(gamepad)) continue; else if (e.clsEnabled()) { setBodyClass(e.cls); return; }
+			}
+
+			if (!isActiveDefault(gamepad)) continue;
+			setBodyClass(Controller);
+			return;
 		}
 	}
 

@@ -56,16 +56,16 @@ See also: [HTML5 Gamepad Tester](http://html5gamepad.com/)
 | IE 11     | OK       | No gamepad API/support                    |
 | ...       | Untested | Should work if addEventListener available |
 
-| Input Type          | CSS Class                           | Status                                              |
-| ------------------- | ----------------------------------- | --------------------------------------------------- |
-| Keyboard            | .mmk-lastinputtype-keyboard         | OK                                                  |
-| Mouse               | .mmk-lastinputtype-mouse            | OK                                                  |
-| Stylus          [2] | .mmk-lastinputtype-stylus           | Untested                                            |
-| Touch               | .mmk-lastinputtype-touch            | Untested                                            |
-| GamepadXbox     [1] | .mmk-lastinputtype-gamepad-xbox     | Partial (Wired 360 Controllers should identify)     |
-| GamepadSony     [1] | .mmk-lastinputtype-gamepad-sony     | NYI                                                 |
-| GamepadStandard [1] | .mmk-lastinputtype-gamepad-standard | OK                                                  |
-| Controller      [1] | .mmk-lastinputtype-controller       | OK                                                  |
+| Input Type          | CSS Class                           | Status                                                |
+| ------------------- | ----------------------------------- | ----------------------------------------------------- |
+| Keyboard            | .mmk-lastinputtype-keyboard         | OK                                                    |
+| Mouse               | .mmk-lastinputtype-mouse            | OK                                                    |
+| Stylus          [2] | .mmk-lastinputtype-stylus           | Untested                                              |
+| Touch               | .mmk-lastinputtype-touch            | Untested                                              |
+| GamepadXbox     [1] | .mmk-lastinputtype-gamepad-xbox     | OK                                                    |
+| GamepadSony     [1] | .mmk-lastinputtype-gamepad-sony     | Partial (DS4 works, DS3 may work with dongle/drivers) |
+| GamepadStandard [1] | .mmk-lastinputtype-gamepad-standard | OK                                                    |
+| Controller      [1] | .mmk-lastinputtype-controller       | OK                                                    |
 
 [1] Requires browser support for the gamepad API
 
@@ -73,17 +73,21 @@ See also: [HTML5 Gamepad Tester](http://html5gamepad.com/)
 
 | Controller                | Status                                            |
 | ------------------------- | ------------------------------------------------- |
-| Xbox 360 Wired Controller | OK                                                |
-| Xbox One Controllers      | NYI (GamepadStandard?)                            |
-| Dualshock Controllers     | NYI (GamepadStandard?)                            |
+| Xbox 360 Wired Controller | Verified OK                                       |
+| Xbox One Controllers      | Verified OK                                       |
+| DualShock 4 (Dongle)      | Verified OK                                       |
+| DualShock 4 (Micro-usb)   | Verified OK                                       |
+| DualShock 3 (*)           | Broken (GamepadSony) [3]                          |
 | ...                       | NYI (GamepadStandard?)                            |
 | ...                       | NYI (Controller)                                  |
 
+[3] While Windows 7 recognizes the gamepad without 3rd party drivers, buttons/axes don't respond.  I assume I either need to pair with a bluetooth dongle, unpair it from my PS3, or install 3rd party drivers.  Or it might just be a broken controller.
 
 
 # TODO
 
-* Sony / dualshock controller support
+* <strike>Sony / dualshock controller support</strike> **Partial support**
+* Add an activity detector that makes no assumptions about controller deadzones (will require more state tracking)
 * Leverage https://github.com/gabomdq/SDL_GameControllerDB ?  No javascript gamepad ids though.
 * Add options to disable minor mouse motion and other "false" positives for last input switching
 * Publish nuget package
